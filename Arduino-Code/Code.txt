@@ -1,0 +1,91 @@
+#include <Wire.h> // I2C Wire Library
+#include <Servo.h> // Servo Motor Library
+#include <MPU6050.h> // MPU6050 Library
+
+// Servo motors
+Servo servo_1; // Forward/Reverse Motor
+Servo servo_2; // Up/Down Motor
+Servo servo_3; // Gripper Motor
+Servo servo_4; // Left/Right Motor
+
+const int MPU_addr = 0x68; // MPU6050 I2C Address
+int16_t axis_X, axis_Y, axis_Z;
+int minVal = 265;
+int maxVal = 402;
+
+double x, y, z;
+
+void setup() {
+  Serial.begin(9600);
+
+  // Initialize I2C communication
+  Wire.begin();
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x6B); // Write to power management register
+  Wire.write(0); // Wake up the MPU6050
+  Wire.endTransmission(true);
+
+  // Attach servo motors to pins
+  servo_1.attach(3);
+  servo_2.attach(5);
+  servo_3.attach(6);
+  servo_4.attach(9);
+}
+
+void loop() {
+  // Read MPU6050 data
+  Wire.beginTransmission(MPU_addr);
+  Wire.write(0x3B); // Start with register 0x3B (ACCEL_XOUT_H)
+  Wire.endTransmission(false);
+  Wire.requestFrom(MPU_addr, 14, true);
+
+  // Combine high and low bytes for each axis
+  axis_X = Wire.read() << 8 | Wire.read();
+  axis_Y = Wire.read() << 8 | Wire.read();
+  axis_Z = Wire.read() << 8 | Wire.read();
+
+  // Map axis values to angle ranges
+  int xAng = map(axis_X, minVal, maxVal, -90, 90);
+  int yAng = map(axis_Y, minVal, maxVal, -90, 90);
+  int zAng = map(axis_Z, minVal, maxVal, -90, 90);
+
+  // Convert to degrees
+  x = RAD_TO_DEG * (atan2(-yAng, -zAng) + PI);
+  y = RAD_TO_DEG * (atan2(-xAng, -zAng) + PI);
+  z = RAD_TO_DEG * (atan2(-yAng, -xAng) + PI);
+
+  // Gripper control using flex sensor
+  int flex_sensorip = analogRead(A0);
+  int gripper = (flex_sensorip > 812) ? 0 : 180;
+  servo_3.write(gripper);
+
+  // Control forward/reverse movement
+  if (x >= 0 && x <= 60) {
+    int mov1 = map(x, 0, 60, 0, 90);
+    Serial.print("Movement in F/R = ");
+    Serial.print(mov1);
+    Serial.println((char)176);
+    servo_1.write(mov1);
+  } else if (x >= 300 && x <= 360) {
+    int mov2 = map(x, 360, 250, 0, 180);
+    Serial.print("Movement in Up/Down = ");
+    Serial.print(mov2);
+    Serial.println((char)176);
+    servo_2.write(mov2);
+  }
+
+  // Control left/right movement
+  if (y >= 0 && y <= 60) {
+    int mov3 = map(y, 0, 60, 90, 180);
+    Serial.print("Movement in Left = ");
+    Serial.print(mov3);
+    Serial.println((char)176);
+    servo_4.write(mov3);
+  } else if (y >= 300 && y <= 360) {
+    int mov3 = map(y, 360, 300, 90, 0);
+    Serial.print("Movement in Right = ");
+    Serial.print(mov3);
+    Serial.println((char)176);
+    servo_4.write(mov3);
+  }
+}
