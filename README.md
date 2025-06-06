@@ -169,25 +169,184 @@ Built-in (for I²C communication)
 
 For debugging raw sensor values (Arduino Serial Plotter)
 
-## Repository Structure
+## Circuit Diagram
+All wiring schematics are in the Circuit_Diagram/ folder. Below is a summary of key connections:
 
-Hand-motion-controlled-robotic-arm/
-├── README.md                        ← (You are here)
-├── LICENSE
-├── Code/
-│   ├── HandGestureArm.ino           ← Arduino sketch
-│   ├── MPU6050.h                    ← Header (if custom) or library references
-│   ├── utils.h                      ← Utility functions (mapping, calibration)
-│   └── README_CODE.md               ← Details on code structure & functions
-├── Circuit_Diagram/
-│   ├── I2C_MPU6050_Wiring.png       ← MPU6050 ↔ Arduino wiring
-│   ├── Flex_Sensor_Wiring.png       ← Flex sensor ↔ Arduino A0
-│   ├── Servo_Connections.png        ← Servos ↔ Arduino PWM pins
-│   └── Full_Schematic.pdf           ← Combined circuit schematic (PDF)
-├── Screenshots/
-│   ├── Setup_Photo.jpg              ← Photo: hardware assembly
-│   ├── Wiring_Diagram.png           ← Annotated wiring photo
-│   └── Operation_Snapshot.jpg       ← Arm in motion, with serial monitor output
-└── LICENSE                           ← MIT License
+#### 1. MPU6050 ↔ Arduino
+
+MPU6050 VCC → Arduino 5 V
+
+MPU6050 GND → Arduino GND
+
+MPU6050 SCL → Arduino A5 (Uno) / D21 (Mega)
+
+MPU6050 SDA → Arduino A4 (Uno) / D20 (Mega)
+
+#### 2. Flex Sensor ↔ Arduino
+
+Flex Sensor (one end) → 5 V
+
+Flex Sensor (other end) → Analog Input A0 + 10 kΩ pull-down to GND
+
+When the finger bends, resistance increases → analog read value changes
+
+#### 3. Servos ↔ Arduino & Power
+
+Servo Grounds (all) → Common GND (Arduino GND)
+
+Servo VCC (all) → External 5 V supply
+
+Ensure common ground between Arduino and servo power rail
+
+Servo Signal → Arduino PWM Pins
+
+Servo 1 (Base): Pin 3
+
+Servo 2 (Shoulder): Pin 5
+
+Servo 3 (Gripper): Pin 6
+
+Servo 4 (Wrist Left/Right): Pin 9
+
+Servo 5 (Elbow): Pin 10 (or any free PWM pin)
+
+#### 4. Power Supply
+
+Use a 5 V regulated power supply rated ≥ 2 A
+
+Tie its GND to Arduino GND
+
+Do NOT power servos from Arduino 5 V regulator (limited current)
+
+Refer to Circuit_Diagram/Full_Schematic.pdf for the complete circuit overview.
+
+## Setup & Installation
+### Hardware Assembly
+#### 1. Mount the MPU6050 & Flex Sensor to Hand
+
+Secure MPU6050 breakout board on top of user’s hand (dorsal side) using Velcro or a 3D-printed holder.
+
+Attach flex sensor along the index finger such that bending causes measurable resistance change.
+
+Route sensor wires to Arduino mounted on wrist or backpack.
+
+#### 2. Build the Robotic Arm Chassis
+
+Assemble the 4-DOF arm using acrylic sheets or laser-cut parts (base, shoulder, elbow, wrist joint, and gripper).
+
+Attach each SG90 servo horn to its corresponding joint with M2.5 screws & spacers.
+
+Mount Arduino Uno on base plate or an independent board with standoffs.
+
+#### 3. Wire All Components on a Breadboard
+
+Place Arduino on breadboard or mount directly.
+
+Connect MPU6050 (I²C) wiring and flex sensor (A0) according to schematics.
+
+Route servo power leads to the external 5 V supply & signal wires to Arduino PWM pins.
+
+Double-check all GNDs are common (Arduino, sensors, servos, power supply).
+
+### Arduino IDE & Libraries
+#### 1. Install Arduino IDE
+
+Download from arduino.cc and install.
+
+#### 2. Install MPU6050 Library
+
+Open Arduino IDE → Sketch → Include Library → Manage Libraries…
+
+Search for “MPU6050” (e.g. by Jeff Rowberg) and install it.
+
+#### 3. Verify Servo & Wire Libraries
+
+The Servo and Wire libraries are bundled with the Arduino IDE; no extra installation needed.
+
+### Wiring Connections
+#### 1. MPU6050 ↔ Arduino
+
+Connect as follows (Uno pins shown):
+
+MPU6050 VCC → Arduino 5 V
+
+MPU6050 GND → Arduino GND
+
+MPU6050 SCL → Arduino A5
+
+MPU6050 SDA → Arduino A4
+
+#### 2. Flex Sensor ↔ Arduino
+
+One end of flex sensor → Arduino 5 V
+
+The other end → Arduino A0 and to a 10 kΩ resistor which is tied to GND
+
+This forms a voltage divider: as the flex sensor bends, voltage at A0 changes.
+
+#### 3. Servos ↔ Arduino & Power
+
+External 5 V supply → Servo VCC leads (red wires)
+
+All servos GND (brown wires) → External 5 V supply GND & Arduino GND
+
+Servo signals (yellow/orange wires) → Arduino PWM pins:
+
+Pin 3 → Servo 1 (Base)
+
+Pin 5 → Servo 2 (Shoulder)
+
+Pin 6 → Servo 3 (Gripper)
+
+Pin 9 → Servo 4 (Wrist)
+
+Pin 10 → Servo 5 (Elbow)
+
+#### 4. Power Supply
+
+Ensure the external 5 V GND is tied to Arduino GND.
+
+Do NOT draw servo power from Arduino’s 5 V pin.
+
+### Loading the Code
+#### 1. Open Arduino Sketch
+
+In Arduino IDE: File → Open, navigate to Code/HandGestureArm.ino.
+
+#### 2. Select the Board & Port
+
+Tools → Board → Arduino Uno (or Nano/Mega if using a different board)
+
+Tools → Port → COMx (Windows) or /dev/ttyUSBx (Linux/macOS)
+
+#### 3. Verify & Upload
+
+Click the Verify button (✓) to compile.
+
+Click Upload (→) to flash the code onto the Arduino.
+
+#### 4. Open Serial Monitor (Optional)
+
+Tools → Serial Monitor, set baud to 115200.
+
+View raw sensor values for calibration or debugging.
+
+### Powering the System
+#### 1. Power Android Board
+
+Insert USB cable to power Arduino from a PC or 5 V adapter.
+
+#### 2. Power Servos & Sensors
+
+Connect the external 5 V supply to servo VCC
+
+Confirm all grounds are common.
+
+#### 3. Initial Calibration
+
+Upon power-up, the code reads baseline MPU6050 offsets; hold your hand in the neutral (flat) position (wrist horizontal, palm facing down) until calibration LED (if available) stops blinking.
+
+The flex sensor at rest (finger straight) should read ≈ 300–400 (ADC units); adjust FLEX_THRESHOLD in code if needed.
+
 
 
