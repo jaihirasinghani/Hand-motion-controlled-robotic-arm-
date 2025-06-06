@@ -107,7 +107,7 @@ We welcome contributions from the community! If you'd like to contribute, please
 
 ## License
 This project is licensed under the MIT License. See the LICENSE file for more details.
-# Robotic Arm Control System Using MPU6050 and Flex Sensor
+
 
 
 
