@@ -1,116 +1,97 @@
-# Hand-motion-controlled-robotic-arm
-# Robotic Arm Control System Using MPU6050 and Flex Sensor
+# Hand-Motion-Controlled Robotic Arm
 
-This repository contains the code, circuit diagram, and reference screenshots for a Robotic Arm Control System built using an Arduino, MPU6050 gyroscope/accelerometer, and a flex sensor. This system allows for intuitive, real-time control of a robotic arm by interpreting hand gestures, providing an engaging way to interface with robotic hardware.
+This repository contains the code, circuit diagrams, and reference screenshots for a Hand-Motion-Controlled Robotic Arm built using an Arduino, an MPU6050 (gyroscope + accelerometer), and a flex sensor. The system allows intuitive, real-time control of a 4-DOF robotic arm by interpreting hand orientation (MPU6050) and finger bending (flex sensor) to drive arm movements and gripper actions.
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)  
+2. [Key Features](#key-features)  
+3. [System Architecture](#system-architecture)  
+4. [Hardware Components](#hardware-components)  
+5. [Software Requirements](#software-requirements)  
+6. [Repository Structure](#repository-structure)  
+7. [Circuit Diagram](#circuit-diagram)  
+8. [Setup & Installation](#setup--installation)  
+   1. [Hardware Assembly](#hardware-assembly)  
+   2. [Ardu​ino IDE & Libraries](#arduino-ide--libraries)  
+   3. [Wiring Connections](#wiring-connections)  
+   4. [Loading the Code](#loading-the-code)  
+   5. [Powering the System](#powering-the-system)  
+9. [How It Works](#how-it-works)  
+   1. [MPU6050 Orientation Detection](#mpu6050-orientation-detection)  
+   2. [Flex Sensor Gripper Control](#flex-sensor-gripper-control)  
+   3. [Servo Mapping & Control](#servo-mapping--control)  
+10. [Customization & Expansion](#customization--expansion)  
+11. [Troubleshooting](#troubleshooting)  
+12. [Future Enhancements](#future-enhancements)  
+13. [Contributing](#contributing)  
+14. [License](#license)  
+
+---
 
 ## Overview
-The project leverages the capabilities of the MPU6050 sensor to capture the orientation and motion of the hand, translating these into movements of a robotic arm. A flex sensor is used to detect finger bending, which controls the gripper's open and close actions.
 
-## Key Features:
-Gesture-Based Control: The system interprets hand orientation and motion to drive the arm's forward/reverse, up/down, and left/right movements.
+The Hand-Motion-Controlled Robotic Arm leverages an MPU6050 (gyroscope + accelerometer) strapped to the user’s hand to capture hand orientation (pitch, roll, yaw) and a flex sensor on the index finger to detect bending for gripper control. Those sensor readings are processed by an Arduino, which then drives four SG90 micro-servos (base rotation, shoulder, elbow, wrist) for spatial movement and a fifth servo for gripper open/close. The result is a near-real-time, intuitive interface: tilt or rotate your hand to move the arm and bend your finger to close/open the gripper.
 
-Gripper Functionality: The flex sensor controls the gripper, simulating a hand's grasping and releasing actions.
+---
 
-Real-Time Responsiveness: The system provides near-instantaneous feedback, making the robotic arm's movement smooth and precise.
+## Key Features
 
-Customizable: The code is modular, allowing for easy adjustments and expansions, such as adding more sensors or modifying the control logic.
+- **Gesture-Based 4-DOF Movement**  
+  - **Base Rotation (Yaw):** Hand rotation around the vertical axis (left/right twist)  
+  - **Shoulder (Pitch):** Forward/backward hand tilt controls up/down movement  
+  - **Elbow (Extension/Flexion):** Hand tilts forward/back beyond threshold to extend/flex elbow  
+  - **Wrist (Roll):** Lateral hand roll (left/right tilt) controls wrist rotation  
 
+- **Gripper Control via Flex Sensor**  
+  - Bending the index finger (flex sensor) closes the gripper; straightening opens it  
 
-## Repository Contents
-Code/: Contains the Arduino sketch that interfaces with the MPU6050 and flex sensor, and controls the servo motors.
+- **Real-Time Responsiveness**  
+  - MPU6050 sampling at 100 Hz (I²C) and flex sensor analog read at 10 bit ADC (≈100 Hz)  
+  - Near-instantaneous servo updates for smooth arm motion  
 
-Circuit Diagram/: Detailed schematics illustrating the connections between all hardware components.
+- **Modular & Customizable Code**  
+  - Each sensor reading and servo mapping handled in separate functions  
+  - Easy to adjust sensitivity thresholds, movement ranges, or calibrate sensor offsets  
 
-Screenshots/: Reference images showing the physical setup and operational snapshots for better understanding and replication.
+- **Comprehensive Documentation**  
+  - Detailed circuit schematics, wiring diagrams, and reference screenshots included  
+  - Step-by-step setup instructions and troubleshooting tips  
 
-README.md: Comprehensive guide on the project, including setup, usage, and customization instructions.
+---
 
+## System Architecture
 
-## Hardware Components
-Arduino Board: Compatible with models like Arduino Uno, Nano, or Mega.
-
-MPU6050 Sensor: A combined gyroscope and accelerometer used for detecting hand orientation and motion.
-
-Flex Sensor: Measures finger bending to control the gripper.
-
-Servo Motors (x4): Control the movements of the robotic arm.
-
-Power Supply: Appropriate power source to drive the servos and sensors.
-
-Breadboard and Jumper Wires: For setting up the prototype circuit.
-
-
-Servo Motor Assignments:
-Servo 1 (Pin 3): Controls forward/reverse movement.
-Servo 2 (Pin 5): Controls up/down movement.
-Servo 3 (Pin 6): Controls the gripper.
-Servo 4 (Pin 9): Controls left/right movement.
-
-
-## Software Requirements
-Arduino IDE: To upload the code to the Arduino board.
-
-MPU6050 Library: Required for interfacing with the MPU6050 sensor.
-
-Servo Library: Used for controlling the servo motors.
-
-
-## Circuit Diagram
-The Circuit_diagram folder contains detailed diagrams to assist in the hardware setup. Each component is labeled for clarity, 
-ensuring an accurate and efficient assembly process.
-
-## Setup and Installation
-1. Connect the Hardware: Refer to the provided circuit diagram to connect the MPU6050, flex sensor, and servo motors to the Arduino board.
-
-2. Load the Code: Open the Arduino IDE and load the sketch from the Code/ directory. Make sure you have the required libraries installed.
-
-3. Upload the Sketch: Connect the Arduino to your computer and upload the sketch. Ensure the correct board and port are selected in the Arduino IDE.
-
-4. Power Up the System: After uploading the code, power the system either through the computer USB or an external power supply, depending on your setup.
-
-## How It Works
-Orientation Detection: The MPU6050 detects the hand's orientation along the X, Y, and Z axes. This data is processed to determine the corresponding movements of the robotic arm.
-
-Gripper Control: The flex sensor's output determines the position of the gripper, whether it is open or closed.
-
-Servo Control: The processed data is mapped to servo motor angles to control the arm's movements smoothly.
-
-
-## Customization and Expansion
-
-Additional Sensors: You can add more sensors for finer control or additional functionalities.
-
-Code Modifications: The code is modular and can be easily modified to adjust sensitivity, movement ranges, or add new features.
-
-Different Hardware: The system can be adapted to work with different microcontrollers or sensor types, depending on the requirements.
-
-
-## Troubleshooting
-
-Sensor Readings: If the MPU6050 or flex sensor readings seem incorrect, ensure the connections are secure and the sensors are properly powered.
-
-Servo Motors: If the servos do not move correctly, check the power supply and the pin connections to the Arduino.
-
-Code Errors: If there are issues with the code, ensure all necessary libraries are installed and the correct board is selected in the Arduino IDE.
-
-
-## Future Enhancements
-Wireless Control: Implementing wireless communication (e.g., Bluetooth or Wi-Fi) to control the robotic arm remotely.
-
-Improved Accuracy: Fine-tuning the sensor data processing for more accurate and smoother movements.
-
-Voice Control: Adding a voice recognition module to control the robotic arm using voice commands.
-
-
-## Contributing
-We welcome contributions from the community! If you'd like to contribute, please fork the repository and create a pull request. For any issues or suggestions, feel free to raise an issue in the Issues tab.
-
-## License
-This project is licensed under the MIT License. See the LICENSE file for more details.
-
-
-
-
-
-
-
+```plaintext
++──────────────────────────────────────────+
+|          User’s Hand (Wearable)         |
+| ┌─────────────────────────────────────┐  |
+| │  MPU6050 (I²C: SCL, SDA, VCC, GND) │  |
+| │  Flex Sensor (Analog Input to A0)  │  |
+| └─────────────────────────────────────┘  |
++──────────────────────────────────────────+
+                    │ (I²C + Analog)
+                    ↓
++──────────────────────────────────────────+
+|             Arduino Uno/Nano            |
+| ┌─────────────────────────────────────┐  |
+| │  Read MPU6050 (pitch, roll, yaw)   │  |
+| │  Read Flex Sensor (0–1023 ADC)     │  |
+| │  Calculate Servo Angles (0–180°)   │  |
+| │  Control 5 × SG90 Servos via PWM   │  |
+| └─────────────────────────────────────┘  |
++──────────────────────────────────────────+
+                    │ (PWM Signals + 5 V Power)
+                    ↓
++──────────────────────────────────────────+
+|   Robotic Arm (4 DOF + Gripper)         |
+| ┌─────────────────────────────────────┐  |
+| │  Servo 1 (Pin 3): Base Rotation     │  |
+| │  Servo 2 (Pin 5): Shoulder Up/Down  │  |
+| │  Servo 3 (Pin 6): Elbow Extend/Flex │  |
+| │  Servo 4 (Pin 9): Wrist Left/Right  │  |
+| │  Servo 5 (Pin 10): Gripper Open/Close │ │
+| └─────────────────────────────────────┘  |
++──────────────────────────────────────────+
