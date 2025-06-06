@@ -3,7 +3,7 @@
 
 This repository contains the code, circuit diagram, and reference screenshots for a Robotic Arm Control System built using an Arduino, MPU6050 gyroscope/accelerometer, and a flex sensor. This system allows for intuitive, real-time control of a robotic arm by interpreting hand gestures, providing an engaging way to interface with robotic hardware.
 
-Overview
+## Overview
 The project leverages the capabilities of the MPU6050 sensor to capture the orientation and motion of the hand, translating these into movements of a robotic arm. A flex sensor is used to detect finger bending, which controls the gripper's open and close actions.
 
 Key Features:
