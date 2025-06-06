@@ -144,7 +144,7 @@ Velcro straps or 3D-printed mount to secure MPU6050 & flex sensor to user’s ha
 
 Nylon spacers, M3 screws for connecting acrylic/metal parts (if custom arm chassis)
 
-Soldering supplies (optional: directly solder I²C header)
+Soldering supplies (optional: directly solder I2C header)
 
 ## Software Requirements
 ##### 1.Arduino IDE (v1.8.13 +)
@@ -163,7 +163,7 @@ Built-in in Arduino IDE
 
 ##### 4.Wire Library
 
-Built-in (for I²C communication)
+Built-in (for I2C communication)
 
 ##### 5.Optional Serial Monitor/Plotter
 
@@ -348,5 +348,28 @@ Upon power-up, the code reads baseline MPU6050 offsets; hold your hand in the ne
 
 The flex sensor at rest (finger straight) should read ≈ 300–400 (ADC units); adjust FLEX_THRESHOLD in code if needed.
 
+### How It Works
+The core idea is to convert real-time hand orientation (roll, pitch, yaw) from the MPU6050 into corresponding servo angles, then read the flex sensor to open/close the gripper. Below is a step-by-step explanation of each subsystem.
+
+### MPU6050 Orientation Detection
+#### 1. I2C Communication Setup
+
+The Arduino’s Wire library initializes I²C at 400 kHz.
+
+MPU6050 is configured for accelerometer ± 2 g and gyroscope ± 250 °/s full-scale ranges.
+
+#### 2. Reading Raw Sensor Data
+
+Accelerometer (AX, AY, AZ) and gyroscope (GX, GY, GZ) readings are retrieved from the MPU6050’s registers at ~100 Hz.
+```cpp
+// Example: converting raw MPU6050 readings to physical units
+float accelX = rawAx / 16384.0;  // in g
+float accelY = rawAy / 16384.0;
+float accelZ = rawAz / 16384.0;
+
+float gyroX = rawGx / 131.0;  // in °/s
+float gyroY = rawGy / 131.0;
+float gyroZ = rawGz / 131.0;
+```
 
 
