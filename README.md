@@ -98,23 +98,23 @@ The Hand-Motion-Controlled Robotic Arm leverages an MPU6050 (gyroscope + acceler
 ```
 
 ## Hardware Components
-Arduino Board
+##### 1. Arduino Board
 
 Uno, Nano, or Mega (5 V logic). In examples, Arduino Uno is used.
 
-MPU6050 Sensor
+##### 2. MPU6050 Sensor
 
 6-axis gyroscope + accelerometer (I²C interface)
 
-Flex Sensor
+##### 3. Flex Sensor
 
 Analog bending sensor (resistance varies when finger bends)
 
-Servo Motors × 5
+##### 4. Servo Motors × 5
 
 SG90 micro-servos (1.8 kg·cm torque recommended)
 
-### Assignments:
+Assignments:
 
 Servo 1 (Pin 3): Base Rotation (forward/reverse movement)
 
@@ -126,21 +126,21 @@ Servo 4 (Pin 9): Left/Right (wrist rotation)
 
 Servo 5 (Pin 10): Elbow (extension/flexion)
 
-### Power Supply
+##### 5. Power Supply
 
 5 V DC regulated (capable of ≥ 2 A)
 
 Common ground between Arduino and servos
 
-Breadboard & Jumper Wires
+##### 6. Breadboard & Jumper Wires
 
 For prototyping connections
 
-Hand-Mounted Setup
+##### 7.Hand-Mounted Setup
 
 Velcro straps or 3D-printed mount to secure MPU6050 & flex sensor to user’s hand
 
-### Miscellaneous
+##### 8. Miscellaneous
 
 Nylon spacers, M3 screws for connecting acrylic/metal parts (if custom arm chassis)
 
