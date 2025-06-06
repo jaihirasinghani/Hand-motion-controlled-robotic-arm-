@@ -95,3 +95,79 @@ The Hand-Motion-Controlled Robotic Arm leverages an MPU6050 (gyroscope + acceler
 | │  Servo 5 (Pin 10): Gripper Open/Close │ │
 | └─────────────────────────────────────┘  |
 +──────────────────────────────────────────+
+```
+
+## Hardware Components
+Arduino Board
+
+Uno, Nano, or Mega (5 V logic). In examples, Arduino Uno is used.
+
+MPU6050 Sensor
+
+6-axis gyroscope + accelerometer (I²C interface)
+
+Flex Sensor
+
+Analog bending sensor (resistance varies when finger bends)
+
+Servo Motors × 5
+
+SG90 micro-servos (1.8 kg·cm torque recommended)
+
+### Assignments:
+
+Servo 1 (Pin 3): Base Rotation (forward/reverse movement)
+
+Servo 2 (Pin 5): Shoulder (up/down movement)
+
+Servo 3 (Pin 6): Gripper (open/close)
+
+Servo 4 (Pin 9): Left/Right (wrist rotation)
+
+Servo 5 (Pin 10): Elbow (extension/flexion)
+
+### Power Supply
+
+5 V DC regulated (capable of ≥ 2 A)
+
+Common ground between Arduino and servos
+
+Breadboard & Jumper Wires
+
+For prototyping connections
+
+Hand-Mounted Setup
+
+Velcro straps or 3D-printed mount to secure MPU6050 & flex sensor to user’s hand
+
+### Miscellaneous
+
+Nylon spacers, M3 screws for connecting acrylic/metal parts (if custom arm chassis)
+
+Soldering supplies (optional: directly solder I²C header)
+
+## Software Requirements
+Arduino IDE (v1.8.13 +)
+
+Must have MPU6050 and Servo libraries installed
+
+MPU6050 Library
+
+e.g. Jeff Rowberg’s MPU6050 library
+
+Install via Library Manager or download and place in Arduino/libraries/
+
+Servo Library
+
+Built-in in Arduino IDE
+
+Wire Library
+
+Built-in (for I²C communication)
+
+Optional Serial Monitor/Plotter
+
+For debugging raw sensor values (Arduino Serial Plotter)
+
+
+
