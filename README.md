@@ -371,5 +371,314 @@ float gyroX = rawGx / 131.0;  // in °/s
 float gyroY = rawGy / 131.0;
 float gyroZ = rawGz / 131.0;
 ```
+#### 3. Complementary Filter for Angle Estimation
 
+Accelerometer-based tilt gives reliable long-term reference (prone to noise).
 
+Gyroscope-based angle rate integration gives smooth short-term response (prone to drift).
+
+Complementary filter fuses both:
+
+```cpp
+// dt = time elapsed since last reading (in seconds)
+float accelPitch = atan2(accelY, accelZ) * RAD_TO_DEG;
+float gyroPitchRate = gyroX;  // °/s
+
+pitch = alpha * (pitch + gyroPitchRate * dt) 
+      + (1 - alpha) * accelPitch;
+```
+Similarly for roll:
+
+```cpp
+float accelRoll = atan2(-accelX, accelZ) * RAD_TO_DEG;
+float gyroRollRate = gyroY;  // °/s
+
+roll = alpha * (roll + gyroRollRate * dt) 
+     + (1 - alpha) * accelRoll;
+```
+Yaw (heading) derived from gyroscope Z only (no magnetometer; accumulates drift, optional).
+
+#### 4. Mapping MPU6050 Angles to Servo Ranges
+
+Base (Yaw) Control: If using gyroscope yaw integration (prone to drift), limit range to ± 90°.
+```coo
+baseAngle = map(constrain(yaw, -90, +90), -90, +90, 0, 180);
+```
+Shoulder (Pitch) Control:
+
+pitch ∈ [−45 °, +45 °] (hand tilted up/down)
+
+Map pitch to shoulder servo angle (e.g., 30 ° to 150 °).
+```cpp
+shoulderAngle = map(constrain(pitch, -45, +45), -45, +45, 150, 30);
+```
+Wrist (Roll) Control:
+
+roll ∈ [−45 °, +45 °] (hand rolled left/right)
+
+Map roll to wrist servo angle (0 ° to 180 °).
+
+```cpp
+wristAngle = map(constrain(roll, -45, +45), -45, +45, 0, 180);
+```
+### Flex Sensor Gripper Control
+#### 1. Voltage Divider Read
+
+Flex sensor and 10 kΩ resistor form a divider; bending finger increases flex resistance (voltage at A0 increases).
+
+Read analogRead(A0) → value ∈ [0, 1023].
+
+#### 2. Thresholding for Open/Close
+
+Define FLEX_THRESHOLD (e.g., 500).
+
+If flexValue > FLEX_THRESHOLD, finger is bent → close gripper (gripperAngle = 180).
+
+Else → open gripper (gripperAngle = 0).
+
+#### 3. Optional Smoothing
+
+Compute running average or apply a simple low-pass filter to prevent jitter when flex value hovers near threshold.
+
+### Servo Mapping & Control
+#### 1. Servo Attachments in Code
+```cpp
+#include <Servo.h>
+Servo servoBase, servoShoulder, servoElbow, servoWrist, servoGripper;
+
+const int PIN_BASE      = 3;
+const int PIN_SHOULDER  = 5;
+const int PIN_ELBOW     = 6;
+const int PIN_WRIST     = 9;
+const int PIN_GRIPPER   = 10;
+```
+#### 2. Attaching Servos in setup()
+```cpp
+void setup() {
+  servoBase.attach(PIN_BASE);
+  servoShoulder.attach(PIN_SHOULDER);
+  servoElbow.attach(PIN_ELBOW);
+  servoWrist.attach(PIN_WRIST);
+  servoGripper.attach(PIN_GRIPPER);
+
+  // Initialize to neutral positions
+  servoBase.write(90);
+  servoShoulder.write(90);
+  servoElbow.write(90);
+  servoWrist.write(90);
+  servoGripper.write(0);
+}
+```
+#### 3. Continuous Update Loop
+```cpp
+void loop() {
+  calculateMPU6050Angles();   // Updates global variables: pitch, roll, yaw
+  readFlexSensor();           // Updates global variable: flexValue
+
+  // Map sensor values to servo angles:
+  int baseAngle      = mapYawToBase(yaw);
+  int shoulderAngle  = mapPitchToShoulder(pitch);
+  int wristAngle     = mapRollToWrist(roll);
+  int elbowAngle     = mapElbowMotion(pitch); // or custom logic
+  int gripperAngle   = (flexValue > FLEX_THRESHOLD) ? 180 : 0;
+
+  // Write to servos:
+  servoBase.write(constrain(baseAngle, 0, 180));
+  servoShoulder.write(constrain(shoulderAngle, 0, 180));
+  servoElbow.write(constrain(elbowAngle, 0, 180));
+  servoWrist.write(constrain(wristAngle, 0, 180));
+  servoGripper.write(constrain(gripperAngle, 0, 180));
+
+  delay(20);  // ~50 Hz update rate
+}
+```
+#### 4. Mapping Functions Example
+```cpp
+int mapYawToBase(float yaw) {
+  // yaw ∈ [-90, +90], map to [0,180]
+  return map((int)yaw, -90, +90, 0, 180);
+}
+
+int mapPitchToShoulder(float pitch) {
+  // pitch ∈ [-45, +45], map to [150, 30] (flip if needed)
+  return map((int)pitch, -45, +45, 150, 30);
+}
+
+int mapRollToWrist(float roll) {
+  // roll ∈ [-45, +45], map to [0,180]
+  return map((int)roll, -45, +45, 0, 180);
+}
+
+int mapElbowMotion(float pitch) {
+  // Example: use pitch > 30° to extend elbow; else flex
+  if (pitch > 30) {
+    return 150;  // extended
+  } else if (pitch < -30) {
+    return 30;   // flexed
+  } else {
+    return 90;   // neutral
+  }
+}
+```
+### Customization & Expansion
+#### 1. Adjust Sensitivity & Ranges
+
+Tweak alpha in the complementary filter for MPU6050 (e.g., 0.98 for smoother gyro reliance).
+
+Update map() ranges: if your mechanical arm has different joint limits, modify min/max angles accordingly.
+
+Calibrate FLEX_THRESHOLD by printing raw analogRead(A0) values in Serial Monitor while bending.
+
+#### 2. Add Additional Sensors
+
+Integrate a magnetometer (e.g., HMC5883L) with MPU6050 to correct yaw drift and improve base rotation accuracy.
+
+Add a second flex sensor on the middle finger to implement pinch gestures for finer gripper control (variable gripper angles).
+
+#### 3. Swap Mechanical Structure
+
+Replace acrylic parts with 3D-printed PLA or metal brackets for greater load capacity.
+
+Add a 5th DOF (wrist pitch) by mounting a micro-servo at the wrist joint for up/down wrist tilt.
+
+#### 4. Alternate Microcontroller
+
+Port code to an Arduino Mega for more PWM pins and memory for future features.
+
+Use ESP32 (Bluetooth/Wi-Fi) to allow wireless control or remote telemetry.
+
+#### 5. Integrate Feedback & Safety
+
+Add an ultrasonic or limit switch on the base to prevent over-rotation.
+
+Integrate current sensing on servo power lines to detect stall or overload.
+
+Implement Inverse Kinematics
+
+Instead of directly mapping pitch/roll to joint angles, calculate joint angles based on desired end-effector (gripper) position using simple 2D/3D IK solvers.
+
+### Troubleshooting
+#### 1. MPU6050 Not Detected
+
+Check I²C wiring: ensure SCL to A5 / SCL, SDA to A4 / SDA, and proper VCC/GND.
+
+In Arduino IDE, open File → Examples → Wire → i2c_scanner to verify MPU6050 I²C address (should respond at 0x68).
+
+If no response, try powering MPU6050 from a separate 5 V source or check solder joints.
+
+#### 2. Unstable or Noisy Angle Readings
+
+Make sure MPU6050 is firmly mounted (no loose connections or vibrations).
+
+Adjust complementary filter coefficient alpha between 0.95 and 0.99 to find optimal balance.
+
+Use low-pass filtering on raw accelerometer/gyro values (e.g., moving average of last 5 readings).
+
+#### 3. Flex Sensor Reads Unchanging Values
+
+Verify flex sensor wiring: one end to 5 V, the other to A0 and to 10 kΩ resistor to GND.
+
+Use Serial Monitor to print analogRead(A0) while bending finger; if values don’t change, check soldering or resistor.
+
+#### 4. Servos Jitter or Stall
+
+Confirm external 5 V supply can source enough current (≥ 2 A).
+
+Add a 100 µF electrolytic capacitor across servo power rails to smooth transients.
+
+Ensure servo GND wires are connected to Arduino GND.
+
+If a servo stalls under load (e.g., heavy gripper payload), consider a higher-torque servo (e.g., MG90S).
+
+#### 5. Arm Moves Erratically or Unexpectedly
+
+Verify sensor calibration: on startup, hold hand level and flat until calibration completes.
+
+Add dead zones: if pitch/roll are near zero (± 2 °), hold servo at neutral to avoid jitter.
+
+Print intermediate sensor values to Serial Monitor to confirm mapping logic.
+
+#### 6. Code Upload Fails
+
+Select the correct board (Uno/Nano/Mega) and processor (for Nano, choose “ATmega328P (Old Bootloader)” if applicable).
+
+Disconnect RX/TX pins (A4/A5 for I²C do not conflict, but if you have soldered additional serial wiring, ensure TX/RX aren’t blocking USB serial).
+
+Ensure no other serial monitor is open when uploading.
+
+### Future Enhancements
+#### 1. Wireless Control
+
+Replace USB cable with HC-05 Bluetooth module to stream data to a PC or smartphone.
+
+Build a simple GUI on Processing or Python (PyQt5) to visualize real-time sensor data and allow manual override via keyboard.
+
+#### 2. Voice Control Integration
+
+Use a speech recognition module (e.g., Arduino Voice Recognition Module) to issue basic commands like “home,” “pick,” “place,” which override or complement hand gestures.
+
+#### 3. Advanced Gripper Feedback
+
+Add a force-sensitive resistor (FSR) on the gripper jaws to detect object contact force; stop closing when threshold is reached to avoid crushing.
+
+#### 4. Dual-Arm Coordination
+
+Implement a second MPU6050/flex-sensor set to control a second robotic arm for synchronous or mirrored operations (e.g., assembly tasks).
+
+#### 5. User Calibration Routine
+
+Add a setup mode where the user holds their hand in neutral, max-tilt, and grip positions to automatically calibrate sensor min/max values instead of hardcoding thresholds.
+
+#### 6. Enhanced Mechanical Design
+
+Incorporate bearings or nylon bushings at joints for reduced friction and improved accuracy.
+
+Use an external gearbox for higher torque requirements (e.g., for heavier gripper payloads).
+
+#### 7. Inverse Kinematics (IK) Engine
+
+Implement a 2-link or 3-link IK solver in Arduino (fixed-point math) to compute joint angles from desired end-effector coordinates, using approximate methods.
+
+#### 8. Data Logging & Telemetry
+
+Log MPU6050 and flex sensor readings along with servo commands to an SD card module for post-operation analysis and fine-tuning.
+
+### Contributing
+We welcome contributions! If you would like to extend this project, please follow these steps:
+
+#### 1. Fork this repository to your GitHub account.
+
+#### 2. Create a new branch for your feature/bugfix:
+```bash
+git checkout -b feature/your-feature-name
+```
+#### 3. Make your changes, test thoroughly, and commit with descriptive messages.
+
+#### 4. Push your branch to your fork:
+
+```bash
+git push origin feature/your-feature-name
+```
+#### 5. Open a Pull Request against the main branch here, describing:
+
+What changes you made
+
+Why they are needed
+
+Any new hardware or software dependencies
+
+#### Before submitting, please ensure:
+
+Code compiles and runs without errors on a fresh Arduino IDE install.
+
+Any added libraries are open-source and included in README_CODE.md or documented.
+
+Mechanical design files (e.g., laser-cut DXF) are added to a new folder if relevant.
+
+For bug reports or feature requests that you do not plan to implement yourself, please open an Issue with as much detail as possible (error messages, wiring photos, Arduino IDE version, etc.).
+
+### License
+This project is licensed under the MIT License. See the LICENSE file for full terms and conditions.
+
+#### Enjoy building and customizing your Hand-Motion-Controlled Robotic Arm!
+#### Feel free to reach out in Issues for questions, suggestions, or collaboration.
