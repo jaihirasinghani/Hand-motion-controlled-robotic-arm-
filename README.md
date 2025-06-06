@@ -147,27 +147,47 @@ Nylon spacers, M3 screws for connecting acrylic/metal parts (if custom arm chass
 Soldering supplies (optional: directly solder I²C header)
 
 ## Software Requirements
-Arduino IDE (v1.8.13 +)
+##### 1.Arduino IDE (v1.8.13 +)
 
 Must have MPU6050 and Servo libraries installed
 
-MPU6050 Library
+##### 2.MPU6050 Library
 
 e.g. Jeff Rowberg’s MPU6050 library
 
 Install via Library Manager or download and place in Arduino/libraries/
 
-Servo Library
+##### 3.Servo Library
 
 Built-in in Arduino IDE
 
-Wire Library
+##### 4.Wire Library
 
 Built-in (for I²C communication)
 
-Optional Serial Monitor/Plotter
+##### 5.Optional Serial Monitor/Plotter
 
 For debugging raw sensor values (Arduino Serial Plotter)
 
+## Repository Structure
+
+Hand-motion-controlled-robotic-arm/
+├── README.md                        ← (You are here)
+├── LICENSE
+├── Code/
+│   ├── HandGestureArm.ino           ← Arduino sketch
+│   ├── MPU6050.h                    ← Header (if custom) or library references
+│   ├── utils.h                      ← Utility functions (mapping, calibration)
+│   └── README_CODE.md               ← Details on code structure & functions
+├── Circuit_Diagram/
+│   ├── I2C_MPU6050_Wiring.png       ← MPU6050 ↔ Arduino wiring
+│   ├── Flex_Sensor_Wiring.png       ← Flex sensor ↔ Arduino A0
+│   ├── Servo_Connections.png        ← Servos ↔ Arduino PWM pins
+│   └── Full_Schematic.pdf           ← Combined circuit schematic (PDF)
+├── Screenshots/
+│   ├── Setup_Photo.jpg              ← Photo: hardware assembly
+│   ├── Wiring_Diagram.png           ← Annotated wiring photo
+│   └── Operation_Snapshot.jpg       ← Arm in motion, with serial monitor output
+└── LICENSE                           ← MIT License
 
 
